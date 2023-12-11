@@ -1,124 +1,77 @@
-import time
-import sys
-import random
 from termcolor import colored
 from constants import soal_ipa, soal_umum, soal_pkn
-
-
-def green_line(length=43):
-    print(colored("="*length, "green"))
-
-
-def loading(words):
-    color = "white"
-    for i in range(101):
-        time.sleep(0.1)
-
-        if (i > 25):
-            color = "blue"
-
-        if (i > 50):
-            color = "magenta"
-
-        if (i > 75):
-            color = "green"
-
-            color = "blue"
-        sys.stdout.write(
-            colored(f"\r {words} %d%%" % i, color))
-        sys.stdout.flush()
-
-
-def hitung_nilai(jawaban_benar, jumlah_soal):
-    return round((jawaban_benar/jumlah_soal)*100)
-
-
-def perulangan_soal(soal):
-    skor = 0
-    hasil_user = {}
-    for no, pertanyaan in enumerate(soal, 1):
-        print(f"{no}. {pertanyaan['soal']}")
-        jawaban = input("Jawaban = ").lower()
-
-        if (jawaban == pertanyaan["jawaban"]):
-            print(colored("Jawaban benar", "green"))
-            hasil_user[no] = {"soal": pertanyaan['soal'],
-                              "jawaban_user": jawaban, "jawaban_data": pertanyaan['jawaban']}
-            skor += 1
-        else:
-            print(colored("Jawaban Salah", "red"))
-            hasil_user[no] = {"soal": pertanyaan['soal'],
-                              "jawaban_user": jawaban, "jawaban_data": pertanyaan['jawaban']}
-            # skor = max(0, skor - 1)
-
-    nilai = hitung_nilai(skor, len(soal))
-    return (nilai, hasil_user)
-
-
-def acak_data_soal(tipe_soal, jumlah):
-    hasil_acak = random.sample(tipe_soal, jumlah)
-    return hasil_acak
-
-
-def generate_soal_random(jl):
-    jumlah_soal = max(1, min(jl, 15))
-    soumum = acak_data_soal(soal_umum, 15 // 3)
-    soipa = acak_data_soal(soal_ipa, 15 // 3)
-    sopkn = acak_data_soal(soal_pkn, 15//3)
-
-    hasil_soal = soumum + soipa + sopkn
-    hasil_soal = acak_data_soal(hasil_soal, jumlah_soal)
-
-    return hasil_soal
-
-
-def init_soal(pl, jl):
-    if (pl == 1):
-        soal = acak_data_soal(soal_umum, jl)
-        response = perulangan_soal(soal)
-    elif (pl == 2):
-        soal = acak_data_soal(soal_ipa, jl)
-        response = perulangan_soal(soal)
-    elif (pl == 3):
-        soal = acak_data_soal(soal_pkn, jl)
-        response = perulangan_soal(soal)
-    elif (pl == 4):
-        soal = generate_soal_random(jl)
-        response = perulangan_soal(soal)
-    return response
+from prettytable import PrettyTable
+from utils import line
+from soal import Soal
 
 
 def main():
-    green_line()
-    print(colored(
-        "✌️  Selamat Datang di QuiPy - Kelompok 6 ✌️ \n\t Aplikasi Quiz Sederhana", "red"))
-    green_line()
+    soal = Soal()
+    while True:
+        line(43, "green")
+        print(colored(
+            "✌️  Selamat Datang di QuiPy - Kelompok 6 ✌️ \n\t Aplikasi Quiz Sederhana", "red"))
+        line(43, "green")
 
-    print("1. UMUM")
-    print("2. IPA")
-    print("3. PKN")
-    green_line(26)
+        print("1. UMUM")
+        print("2. IPA")
+        print("3. PKN")
+        line(26, "green")
 
-    tipe_soal = int(input("Masukkan Pilihan (default acak) : ") or "4")
-    jumlah_soal = int(input("Masukkan jumlah soal (default 15) : ") or "15")
+        while True:
+            try:
+                tipe_soal = int(
+                    input("Masukkan Pilihan (default acak) : ") or "4")
+                jumlah_soal = int(
+                    input("Masukkan jumlah soal (default 10) : ") or "10")
+                break
+            except:
+                print(colored("Data tidak valid silahkan ulangi inputan", "red"))
 
-    quiz = init_soal(tipe_soal, jumlah_soal)
-    print("{:<2} {:<50} {:<20} {:<20}".format(
-        "No",
-        "Soal",
-        "Jawaban User",
-        "Jawaban Data"
-    ))
-    print("-" * 80)
-    for nomor, data in quiz[1].items():
+        nama_user = input("Masukkan Nama Anda : ")
+        nim_user = input("Masukkan Nim Anda : ")
 
-        print("{:<2} {:<50} {:<30} {:<20}".format(
-            nomor,
-            data['soal'],
-            colored(data['jawaban_user'], 'green' if (
-                data['jawaban_user'] == data['jawaban_data'])else 'red'),
-            data['jawaban_data']
-        ))
+        quiz = soal.init_soal(tipe_soal, jumlah_soal)
+
+        tabel = PrettyTable()
+        tabel.field_names = ["No", "Soal", "Jawaban User", "Jawaban Data"]
+        jawaban_benar = 0
+        jawaban_salah = 0
+        for nomor, data in quiz[1].items():
+            if (data["jawaban_user"] == data["jawaban_data"]):
+                jawaban_benar += 1
+            else:
+                jawaban_salah += 1
+            tabel.add_row(
+                [nomor, data['soal'], colored(data['jawaban_user'], "green" if (data["jawaban_user"] == data["jawaban_data"])else "red"), data['jawaban_data']])
+
+        tabel.align["No"] = "c"
+        tabel.align["Soal"] = "l"
+        tabel.align["Jawaban User"] = "c"
+        tabel.align["Jawaban Data"] = "c"
+
+        length_tabel = len(tabel.get_string().split("\n")[0])
+        print(length_tabel)
+        line(length_tabel, "green")
+        print("{:^{}}".format(
+            "Universitas Bina Sarana Informatika", length_tabel))
+        print("{:^{}}".format(
+            "Hasil Quiz Sederhana", length_tabel))
+        line(length_tabel, "green")
+        lebar_setengah = length_tabel // 2
+        print(f"Nama User : {nama_user:<{lebar_setengah}} Jumlah Soal : {
+            jumlah_soal:<{lebar_setengah}}")
+        print(f"Nim User  : {nim_user:<{lebar_setengah}} Jumlah Benar: {jawaban_benar:<{
+            lebar_setengah}}")
+        print(f"{' ' * (length_tabel // 2 + 12)
+                 } Jumlah Salah: {jawaban_salah:>0}")
+        print(f"{' ' * (length_tabel // 2 + 12)} Total Nilai : {quiz[0]:>0}")
+        print(tabel)
+
+        ulangi = input("Apakah anda ingin mencoba lagi? (y/n)").lower()
+        if (ulangi != "y"):
+            print("Terimakasih sudah mencoba, Sampai Jumpa!")
+            break
 
 
 main()
