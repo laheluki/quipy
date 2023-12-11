@@ -1,9 +1,1 @@
-### install library tambahan
-```python
-pip install termcolor
-pip install prettytable
-```
-### running
-```python
-py app.py
-```
+### Pindah ke branch percobaan1
